@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GipoNext - Preventivo</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script>
+    const refOk = document.referrer.includes("alfpes24.github.io") || window.opener;
+    const accesso = localStorage.getItem("accesso_consentito") === "ok";
+    if (!accesso || !refOk) {
+      document.write("<h2 style='color:red;text-align:center;'>Accesso non autorizzato</h2>");
+      setTimeout(() => location.replace("https://alfpes24.github.io/"), 1500);
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Layout principale -->
+  <div class="layout-container">
+    
+    <!-- Colonna sinistra -->
+    <section class="presentation">
+      <img src="https://www.giponext.it/Images/logo-gipo-next-primary-tagline.svg" class="logo" alt="GipoNext logo" />
+      <h1>Il gestionale per ambulatori<br>più evoluto in Italia</h1>
+      <p class="lead">Digitalizza la tua struttura sanitaria con uno strumento completo, sicuro e facile da usare.</p>
+      <ul class="features">
+        <li>☁️ 100% in cloud, accessibile ovunque</li>
+        <li>🔐 Dati protetti con standard elevati</li>
+        <li>⚙️ Integrazione con MioDottore</li>
+        <li>✍️ Firma digitale e prenotazioni automatiche</li>
+      </ul>
+      <div class="badge">Scelto da oltre 4.000 strutture sanitarie</div>
+    </section>
+
+    <!-- Colonna destra -->
+    <section class="form-box">
+      <form id="calculator-form">
+        <h2>Configura il tuo preventivo</h2>
+
+        <div class="form-group">
+          <label for="rooms">N° Ambulatori</label>
+          <input type="number" id="rooms" min="1" required />
+        </div>
+
+        <div class="form-group">
+          <label for="doctors">N° Medici</label>
+          <input type="number" id="doctors" min="1" required />
+        </div>
+
+        <div class="form-group">
+          <label for="bundle">Versione GIPO</label>
+          <select id="bundle">
+            <option value="starter">Starter</option>
+            <option value="plus" selected>Plus</option>
+            <option value="vip">VIP</option>
+          </select>
+        </div>
+
+        <div class="form-group checkbox">
+          <label><input type="checkbox" id="crm" /> Includi CRM MioDottore</label>
+        </div>
+
+        <div class="form-group checkbox">
+          <label><input type="checkbox" id="tabletFirma" /> Tablet Firma Digitale (+429€)</label>
+        </div>
+
+        <div class="form-group checkbox">
+          <label><input type="checkbox" id="lettoreTessera" /> Lettore Tessera Sanitaria (+79€)</label>
+        </div>
+
+        <button type="button" id="calculate-btn" class="btn-primary">Calcola</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- Prezzi a listino -->
+  <section id="listino-panel" class="card hidden">
+    <h2>Risultato a listino</h2>
+    <div class="price-row"><span>Canone mensile</span><strong id="monthly-list-price">-- €</strong></div>
+    <div class="price-row"><span>Setup una tantum</span><strong id="setup-list-price">-- €</strong></div>
+    <div class="price-row"><span>Totale una tantum</span><strong id="setup-total">-- €</strong></div>
+
+    <!-- Nuovo bottone procedi -->
+    <a href="https://apps.docusign.com/send/templates?view=shared" target="_blank" class="btn-primary full">
+      Procedi e firma ora con DocuSign
+    </a>
+
+    <button id="check-btn" class="btn-outline">Verifica condizioni riservate</button>
+  </section>
+
+  <!-- Verifica promozione -->
+  <section id="loading-spinner" class="card hidden">
+    <h2>Sto verificando<br />se ci sono condizioni riservate…</h2>
+    
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <p class="verifica-msg">
+      <span class="loader-icon">⏳</span>
+      <span id="countdown">Attendere 15 secondi…</span>
+    </p>
+  </section>
+
+  <!-- Offerta riservata -->
+  <section id="dettaglio-panel" class="card hidden">
+    <h2 class="highlight">Ottime notizie!</h2>
+    <p class="subtitle">È disponibile un’offerta riservata per la tua configurazione.</p>
+
+    <div class="price-row">
+      <span>Canone mensile</span>
+      <div>
+        <strong id="default-monthly-price" class="promo-price">-- €</strong>
+        <span class="crossed" id="list-monthly-crossed">-- €</span>
+      </div>
+    </div>
+
+    <div class="price-row">
+      <span>Setup una tantum</span>
+      <div>
+        <strong id="setup-fee" class="promo-price">-- €</strong>
+        <span class="crossed" id="list-setup-crossed">-- €</span>
+      </div>
+    </div>
+
+    <div class="price-row">
+      <span>Bonus incluso</span>
+      <strong class="bonus">Formazione e Assistenza</strong>
+    </div>
+
+    <div class="price-row">
+      <span>⏱️ Valida ancora per</span>
+      <strong class="timer">2 h 38 min</strong>
+    </div>
+
+    <a href="https://apps.docusign.com/send/templates?view=shared" target="_blank" class="btn-primary full">
+      Blocca ora e firma con DocuSign
+    </a>
+  </section>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
