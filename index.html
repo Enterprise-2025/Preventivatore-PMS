@@ -7,11 +7,11 @@
   <link rel="stylesheet" href="style.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <script>
-    const refOk = document.referrer.includes("Enterprise-2025.github.io") || window.opener;
+    const refOk = document.referrer.includes("enterprise-2025.github.io") || window.opener;
     const accesso = localStorage.getItem("accesso_consentito") === "ok";
     if (!accesso || !refOk) {
       document.write("<h2 style='color:red;text-align:center;'>Accesso non autorizzato</h2>");
-      setTimeout(() => location.replace("https://Enterprise-2025.github.io/"), 1500);
+      setTimeout(() => location.replace("https://enterprise-2025.github.io/"), 1500);
     }
   </script>
 </head>
