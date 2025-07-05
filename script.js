@@ -8,7 +8,7 @@
   }
 })();
 // ===================
-// Preventivatore Drag&Drop - TUTTO AGGIUNGIBILE E DRAGGABILE
+// Preventivatore Drag&Drop - Tutto aggiungibile, Attivazione/Formazione sempre presente e aggiornata
 // ===================
 
 // Tabelle prezzi bundle e setup fee
@@ -65,8 +65,32 @@ let promoAttiva = false;
 let progressAttiva = false;
 let timerInterval = null;
 
-// Render preventivo (tutto aggiungibile)
+// ATTIVAZIONE / FORMAZIONE sempre presente come prima voce
+function aggiornaSetupFee() {
+  // Cerca il primo bundle (qualsiasi tra quelli presenti)
+  const primoBundle = serviziSelezionati.find(s => ["Starter","Plus","VIP"].includes(s.nome));
+  const nStanze = primoBundle ? primoBundle.nStanze : null;
+  const idx = serviziSelezionati.findIndex(s => s.fixed);
+
+  const feeObj = {
+    nome: "Attivazione / Formazione",
+    prezzo: nStanze ? prezzoSetup(nStanze, false) : '',
+    tipo: "setup",
+    fixed: true,
+    nStanze: nStanze
+  };
+
+  if (idx === -1) {
+    serviziSelezionati.unshift(feeObj);
+  } else {
+    serviziSelezionati[idx] = feeObj;
+  }
+}
+
+// Render preventivo (tutto aggiungibile, con attivazione/formazione sempre in cima)
 function aggiornaPreventivo() {
+  aggiornaSetupFee();
+
   const dropzone = document.getElementById('dropzone');
   dropzone.innerHTML = '';
   if (serviziSelezionati.length === 0) {
@@ -77,6 +101,16 @@ function aggiornaPreventivo() {
       card.className = 'voce-preventivo';
       let quantitaInput = '';
       let prezzo = '';
+      // Attivazione/Formazione (non rimuovibile)
+      if (serv.fixed) {
+        card.innerHTML = `
+          <span class="nome">${serv.nome}</span>
+          <span class="prezzo">${serv.prezzo !== '' ? serv.prezzo + ' € una tantum' : '<span style="color:#bbb">—</span>'}</span>
+        `;
+        // Nessun tasto rimuovi!
+        dropzone.appendChild(card);
+        return;
+      }
       // Bundle
       if (["Starter","Plus","VIP"].includes(serv.nome)) {
         prezzo = prezzoBundle(serv.nome, serv.nStanze, false);
@@ -126,7 +160,8 @@ function aggiornaPreventivo() {
   // Totali
   let totaleMensile = 0, totaleSetup = 0;
   serviziSelezionati.forEach(serv => {
-    if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze, false);
+    if (serv.fixed && serv.prezzo !== '') totaleSetup += parseInt(serv.prezzo);
+    else if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze, false);
     else if (serv.nome === "CRM MioDottore") totaleMensile += (serv.quantita || 1) * 10;
     else if (serv.nome === "Visibility MioDottore") totaleMensile += prezzoVisibility(serv.quantita, false);
     else if (serv.tipo === "setup") totaleSetup += serv.prezzo;
@@ -165,6 +200,7 @@ window.modificaQuantitaDiretta = function(val, idx, min, max) {
   aggiornaPreventivo();
 };
 window.rimuoviVocePreventivo = function(idx) {
+  if (serviziSelezionati[idx].fixed) return;
   serviziSelezionati.splice(idx, 1);
   aggiornaPreventivo();
 };
@@ -275,7 +311,7 @@ function aggiornaPromoPanel() {
     return;
   }
 
-  // Calcolo promo: somma tutte le voci bundle/visibility/CRM
+  // Calcolo promo: somma tutte le voci bundle/visibility/CRM/setup
   let bundlePromoTxt = '', feePromoTxt = '', crmPromoTxt = '', visibilityPromoTxt = '';
   let totaleMensilePromo = 0, totaleSetupPromo = 0;
 
@@ -300,8 +336,10 @@ function aggiornaPromoPanel() {
     }
     // Setup fee/una tantum
     else if (serv.tipo === "setup") {
-      feePromoTxt += `<div class="promo-voce"><b>${serv.nome}</b> <span>${serv.prezzo} € una tantum</span> <span class="promo-label">Promo</span></div>`;
-      totaleSetupPromo += serv.prezzo;
+      if(serv.prezzo) {
+        feePromoTxt += `<div class="promo-voce"><b>${serv.nome}</b> <span>${serv.prezzo} € una tantum</span> <span class="promo-label">Promo</span></div>`;
+        totaleSetupPromo += serv.prezzo;
+      }
     }
   });
 
@@ -398,7 +436,10 @@ function esportaPreventivoTXT(dati) {
 
   txt += `SERVIZI SELEZIONATI - PREZZI DI LISTINO\n`;
   serviziSelezionati.forEach(serv => {
-    if (["Starter","Plus","VIP"].includes(serv.nome)) {
+    if (serv.fixed && serv.prezzo !== '') {
+      txt += `- ${serv.nome}: ${serv.prezzo} € una tantum\n`;
+    }
+    else if (["Starter","Plus","VIP"].includes(serv.nome)) {
       txt += `- ${serv.nome} (${serv.nStanze} stanze): ${prezzoBundle(serv.nome, serv.nStanze, false)} €/mese\n`;
     } else if (serv.nome === 'CRM MioDottore') {
       txt += `- CRM MioDottore (${serv.quantita} stanze): ${serv.quantita * 10} €/mese\n`;
@@ -412,7 +453,8 @@ function esportaPreventivoTXT(dati) {
   });
   let totaleMensile = 0, totaleSetup = 0;
   serviziSelezionati.forEach(serv => {
-    if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze, false);
+    if (serv.fixed && serv.prezzo !== '') totaleSetup += parseInt(serv.prezzo);
+    else if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze, false);
     else if (serv.nome === "CRM MioDottore") totaleMensile += (serv.quantita || 1) * 10;
     else if (serv.nome === "Visibility MioDottore") totaleMensile += prezzoVisibility(serv.quantita, false);
     else if (serv.tipo === "setup") totaleSetup += serv.prezzo;
@@ -426,7 +468,11 @@ function esportaPreventivoTXT(dati) {
     txt += `\nOFFERTA RISERVATA (PROMO):\n`;
     let totaleMensilePromo = 0, totaleSetupPromo = 0;
     serviziSelezionati.forEach(serv => {
-      if (["Starter","Plus","VIP"].includes(serv.nome)) {
+      if (serv.fixed && serv.prezzo !== '') {
+        txt += `- ${serv.nome}: ${serv.prezzo} € una tantum (promo)\n`;
+        totaleSetupPromo += serv.prezzo;
+      }
+      else if (["Starter","Plus","VIP"].includes(serv.nome)) {
         let prezzo = prezzoBundle(serv.nome, serv.nStanze, true);
         txt += `- ${serv.nome} (${serv.nStanze} stanze): ${prezzo} €/mese (promo)\n`;
         totaleMensilePromo += prezzo;
