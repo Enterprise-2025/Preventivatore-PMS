@@ -8,7 +8,7 @@
   }
 })();
 // ===================
-// Preventivatore Drag&Drop - Quantità e promo corretta + CRM sincronizzato
+// Preventivatore Drag&Drop - Bundle e Setup: logica maggiorazioni listino/promo
 // ===================
 
 const soglie = [1, 2, 4, 6, 8, 10, 15, 20];
@@ -41,16 +41,29 @@ function getSogliaIdx(nStanze) {
   }
   return soglie.length-1;
 }
+
+// FUNZIONE PREZZO BUNDLE
 function prezzoBundle(nome, nStanze, promo=false) {
   const idx = getSogliaIdx(nStanze);
   const base = prezziBundleGipo[nome][idx] * nStanze;
-  return promo ? Math.round(base * 1.18) : Math.round(base * 1.3);
+  if (promo) {
+    return Math.round(base * 1.15); // promo: maggiorazione 15%
+  } else {
+    return Math.round(base * 1.3);  // listino: maggiorazione 30%
+  }
 }
+
+// FUNZIONE PREZZO SETUP
 function prezzoSetup(nStanze, promo=false) {
   const idx = getSogliaIdx(nStanze);
   const base = prezziSetupFee[idx];
-  return promo ? Math.round(base * 5) : Math.round(base * 9);
+  if (promo) {
+    return base * 3; // promo: x3
+  } else {
+    return base * 7; // listino: x7
+  }
 }
+
 function prezzoVisibility(nMedici, promo=false) {
   const unit = getPrezzoUnitarioVisibility(nMedici);
   return promo
@@ -298,7 +311,7 @@ dropzone.addEventListener('drop', function (e) {
   aggiornaPreventivo();
 });
 
-// PROGRESS BAR e PROMO identica a logica precedente
+// PROGRESS BAR e PROMO
 function aggiornaProgressBar() {
   let bar = document.getElementById('progress-bar-panel');
   if (!progressAttiva) {
@@ -369,13 +382,13 @@ function aggiornaPromoPanel() {
   serviziSelezionati.forEach(serv => {
     // Bundle GIPO
     if (["Starter","Plus","VIP"].includes(serv.nome)) {
-      let prezzo = prezzoBundle(serv.nome, serv.nStanze, true);
+      let prezzo = prezzoBundle(serv.nome, serv.nStanze, true); // promo = maggiorazione 15%
       bundlePromoTxt += `<div class="promo-voce"><b>${serv.nome} (${serv.nStanze} stanze)</b> <span>${prezzo} € /mese</span> <span class="promo-label">Promo</span></div>`;
       totaleMensilePromo += prezzo;
     }
     // CRM MioDottore
     else if (serv.nome === "CRM MioDottore") {
-      let prezzo = (serv.quantita || 1) * 10;
+      let prezzo = (serv.quantita || 1) * 10; // invariato
       crmPromoTxt += `<div class="promo-voce"><b>CRM MioDottore (${serv.quantita} stanze)</b> <span>${prezzo} € /mese</span></div>`;
       totaleMensilePromo += prezzo;
     }
@@ -490,7 +503,7 @@ function mostraModalExport() {
   };
 }
 
-// GENERAZIONE E DOWNLOAD DEL TXT (resta invariata, include anche la parte promo se attiva)
+// GENERAZIONE E DOWNLOAD DEL TXT
 function esportaPreventivoTXT(dati) {
   let txt = '';
   txt += `Preventivo per struttura: ${dati.nome}\n`;
