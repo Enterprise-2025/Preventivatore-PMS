@@ -23,11 +23,9 @@
     <section class="catalog">
       <h2>Catalogo Servizi</h2>
       <div class="servizi-lista">
-        <!-- BUNDLE GIPO -->
         <div class="card-servizio" draggable="true" data-nome="Starter" data-prezzo="0" data-tipo="bundle">Starter<br><small>Prezzo in base alle stanze</small></div>
         <div class="card-servizio" draggable="true" data-nome="Plus" data-prezzo="0" data-tipo="bundle">Plus<br><small>Prezzo in base alle stanze</small></div>
         <div class="card-servizio" draggable="true" data-nome="VIP" data-prezzo="0" data-tipo="bundle">VIP<br><small>Prezzo in base alle stanze</small></div>
-        <!-- MODULI MENSILI, SETUP, E CON QUANTITÀ -->
         <div class="card-servizio" draggable="true" data-nome="CRM MioDottore" data-prezzo="10" data-tipo="mensile" data-hasqty="true" data-labelqty="Stanze">CRM MioDottore<br><small>10 €/mese per stanza</small></div>
         <div class="card-servizio" draggable="true" data-nome="Visibility MioDottore" data-prezzo="0" data-tipo="mensile" data-hasqty="true" data-labelqty="Medici">Visibility MioDottore<br><small>Prezzo in base ai medici</small></div>
         <div class="card-servizio" draggable="true" data-nome="Tablet Firma Digitale" data-prezzo="429" data-tipo="setup">Tablet Firma Digitale<br><small>429 € una tantum</small></div>
@@ -52,7 +50,7 @@
 
     <!-- Dropzone Preventivo -->
     <section class="preventivo">
-      <h2>Il tuo preventivo GipoNext</h2>
+      <h2>Il tuo preventivo</h2>
       <div class="dropzone" id="dropzone">
         <p style="color:#94a3b8;margin:0;">Trascina qui i servizi che vuoi attivare</p>
       </div>
@@ -62,12 +60,26 @@
       </div>
       <div class="azioni">
         <button class="btn btn-outline">Verifica condizioni riservate</button>
-        <button class="btn btn-primary">Genera PDF</button>
-        <button class="btn btn-outline">Procedi</button>
+        <button class="btn btn-primary" id="btn-exporta-txt">Esporta documento</button>
+        <button class="btn btn-outline" id="btn-calendar">Fissa appuntamento</button>
+        <button class="btn btn-outline" id="btn-docusign">Procedi</button>
       </div>
-      <!-- Barra di avanzamento e Offerta Riservata vengono generati dal JS -->
+      <!-- Progress bar e pannello promo saranno generati dal JS -->
     </section>
   </div>
   <script src="script.js"></script>
+  <script>
+    // Collega i nuovi bottoni a Google Calendar e DocuSign
+    document.getElementById('btn-calendar').onclick = function() {
+      const titolo = encodeURIComponent("Appuntamento QPWON");
+      const dettagli = encodeURIComponent("Conferma appuntamento per la presentazione del preventivo QPWON.");
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titolo}&details=${dettagli}`;
+      window.open(url, '_blank');
+    };
+    document.getElementById('btn-docusign').onclick = function() {
+      window.open("https://www.docusign.com/it", '_blank'); // Sostituisci con il TUO link DocuSign!
+    };
+  </script>
 </body>
 </html>
+
