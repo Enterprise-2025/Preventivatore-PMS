@@ -7,9 +7,8 @@
     setTimeout(() => location.replace("https://enterprise-2025.github.io/"), 1500);
   }
 })();
-
 // ===================
-// Preventivatore Drag&Drop - Completo, DRAG&DROP Funzionante
+// Preventivatore Drag&Drop - completo (promo bundle +18%, export txt, calendar, docusign)
 // ===================
 
 // Tabelle prezzi bundle e setup fee
@@ -21,7 +20,6 @@ const prezziBundleGipo = {
 };
 const prezziSetupFee = [99,119,129,149,199,299,499,899];
 
-// Fasce visibility MioDottore
 const visibilityFasce = [
   { min: 5, max: 10, prezzo: 44 },
   { min: 11, max: 15, prezzo: 39 },
@@ -38,7 +36,6 @@ function getPrezzoUnitarioVisibility(nMedici) {
   }
   return 0;
 }
-
 function getSogliaIdx(nStanze) {
   for (let i=0; i<soglie.length; i++) {
     if (nStanze <= soglie[i]) return i;
@@ -46,18 +43,25 @@ function getSogliaIdx(nStanze) {
   return soglie.length-1;
 }
 
-// Prezzo bundle/setup fee (con maggiorazioni/promo)
-function prezzoBundle(bundle, nStanze, promo=false) {
-  if (!bundle || !nStanze) return '';
+// Prezzi maggiorati (listino) e promo (offerta riservata)
+function prezzoBundle(nome, nStanze, promo=false) {
   const idx = getSogliaIdx(nStanze);
-  const base = prezziBundleGipo[bundle][idx] * nStanze;
-  return promo ? Math.round(base * 1.15) : Math.round(base * 1.3);
+  const base = prezziBundleGipo[nome][idx] * nStanze;
+  // Listino = maggiorazione 30%, Promo = maggiorazione 18%
+  return promo ? Math.round(base * 1.18) : Math.round(base * 1.3);
 }
 function prezzoSetup(nStanze, promo=false) {
-  if (!nStanze) return '';
   const idx = getSogliaIdx(nStanze);
   const base = prezziSetupFee[idx];
-  return promo ? Math.round(base * 4.7) : Math.round(base * 6.7);
+  // Listino = maggiorazione 800%, Promo = maggiorazione 400%
+  return promo ? Math.round(base * 5) : Math.round(base * 9);
+}
+function prezzoVisibility(nMedici, promo=false) {
+  const unit = getPrezzoUnitarioVisibility(nMedici);
+  // Listino = maggiorazione 30%, Promo = maggiorazione 15%
+  return promo
+    ? Math.round(unit * nMedici * 1.15)
+    : Math.round(unit * nMedici * 1.3);
 }
 
 // Stato
@@ -74,7 +78,7 @@ function aggiornaSetupFee() {
 
   const feeObj = {
     nome: "Attivazione / Formazione",
-    prezzo: nStanze ? prezzoSetup(nStanze, promoAttiva) : '',
+    prezzo: nStanze ? prezzoSetup(nStanze, false) : '',
     tipo: "setup",
     fixed: true,
     nStanze: nStanze
@@ -87,7 +91,7 @@ function aggiornaSetupFee() {
   }
 }
 
-// Render preventivo
+// Render preventivo (carrello: prezzi SEMPRE di listino)
 function aggiornaPreventivo() {
   aggiornaSetupFee();
 
@@ -109,7 +113,7 @@ function aggiornaPreventivo() {
       }
       // Bundle GIPO
       else if (serv.tipo === 'bundle') {
-        const prezzoTotale = prezzoBundle(serv.nome, serv.nStanze, promoAttiva);
+        const prezzoTotale = prezzoBundle(serv.nome, serv.nStanze, false);
         card = document.createElement('div');
         card.className = 'voce-preventivo bundle-card';
         card.innerHTML = `
@@ -147,10 +151,7 @@ function aggiornaPreventivo() {
         if (nMedici < 5) nMedici = 5;
         if (nMedici > 99) nMedici = 99;
         serv.quantita = nMedici;
-        const prezzoUnit = getPrezzoUnitarioVisibility(nMedici);
-        const prezzoBase = prezzoUnit * nMedici;
-        const maggiorazione = promoAttiva ? 1.15 : 1.3;
-        const prezzoTot = Math.round(prezzoBase * maggiorazione);
+        const prezzoTot = prezzoVisibility(nMedici, false);
         card = document.createElement('div');
         card.className = 'voce-preventivo';
         card.innerHTML = `
@@ -165,59 +166,17 @@ function aggiornaPreventivo() {
           <button title="Rimuovi" onclick="rimuoviVocePreventivo(${idx})">&times;</button>
         `;
       }
-      // Add-on a quantità
-      else if (serv.hasQuantita) {
-        const prezzoTot = serv.prezzo * serv.quantita;
-        card = document.createElement('div');
-        card.className = 'voce-preventivo';
-        card.innerHTML = `
-          <span class="nome">${serv.nome}</span>
-          <span style="display: flex; align-items: center; gap: 6px;">
-            ${serv.labelQuantita}:
-            <button type="button" class="btn-qty" onclick="modificaQuantita(${idx}, -1)">-</button>
-            <input type="number" min="1" max="50" value="${serv.quantita}" style="width:40px;text-align:center;font-size:15px;" onchange="modificaQuantitaDiretta(this.value, ${idx})" />
-            <button type="button" class="btn-qty" onclick="modificaQuantita(${idx}, 1)">+</button>
-          </span>
-          <span class="prezzo">${prezzoTot} € /mese</span>
-          <button title="Rimuovi" onclick="rimuoviVocePreventivo(${idx})">&times;</button>
-        `;
-      }
-      // Moduli standard
-      else {
-        card = document.createElement('div');
-        card.className = 'voce-preventivo';
-        card.innerHTML = `
-          <span class="nome">${serv.nome}</span>
-          <span class="prezzo">${serv.prezzo} € ${serv.tipo === 'setup' ? 'una tantum' : '/mese'}</span>
-          <button title="Rimuovi" onclick="rimuoviVocePreventivo(${idx})">&times;</button>
-        `;
-      }
       dropzone.appendChild(card);
     });
   }
 
-  // Totali principali
+  // Totali di listino (mai scontati)
   let totaleMensile = 0, totaleSetup = 0;
   serviziSelezionati.forEach(serv => {
     if (serv.fixed && serv.prezzo !== '') totaleSetup += parseInt(serv.prezzo);
-    else if (serv.tipo === 'bundle' && prezzoBundle(serv.nome, serv.nStanze, promoAttiva) !== '') {
-      totaleMensile += prezzoBundle(serv.nome, serv.nStanze, promoAttiva);
-    } else if (serv.nome === "CRM MioDottore") {
-      totaleMensile += (serv.quantita || 1) * 10;
-    } else if (serv.nome === "Visibility MioDottore") {
-      const nMedici = serv.quantita;
-      const prezzoUnit = getPrezzoUnitarioVisibility(nMedici);
-      const prezzoBase = prezzoUnit * nMedici;
-      const maggiorazione = promoAttiva ? 1.15 : 1.3;
-      const prezzoTot = Math.round(prezzoBase * maggiorazione);
-      totaleMensile += prezzoTot;
-    } else if (serv.hasQuantita) {
-      totaleMensile += serv.prezzo * serv.quantita;
-    } else if (serv.tipo === 'mensile') {
-      totaleMensile += serv.prezzo;
-    } else if (serv.tipo === 'setup') {
-      totaleSetup += serv.prezzo;
-    }
+    else if (serv.tipo === 'bundle') totaleMensile += prezzoBundle(serv.nome, serv.nStanze, false);
+    else if (serv.nome === "CRM MioDottore") totaleMensile += (serv.quantita || 1) * 10;
+    else if (serv.nome === "Visibility MioDottore") totaleMensile += prezzoVisibility(serv.quantita, false);
   });
   document.getElementById('totale-mensile').textContent = totaleMensile + ' €';
   document.getElementById('totale-setup').textContent = totaleSetup + ' €';
@@ -269,13 +228,14 @@ function startProgressBar(callback) {
     if (elapsed >= duration) {
       clearInterval(timerInterval);
       progressAttiva = false;
+      promoAttiva = true;
       aggiornaProgressBar();
       if (callback) callback();
     }
   }, 1000);
 }
 
-// --- OFFERTA RISERVATA (pannello promo) ---
+// --- OFFERTA RISERVATA (promo, CRM incluso a prezzo pieno) ---
 function aggiornaPromoPanel() {
   let panel = document.getElementById('promo-panel');
   if (!panel) {
@@ -289,11 +249,15 @@ function aggiornaPromoPanel() {
     panel.style.display = 'none';
     return;
   }
-  // Bundle/fee in versione promo
+
+  // Voci promo (SOLO prezzi promo)
   const bundle = serviziSelezionati.find(s => s.tipo === 'bundle');
   const nStanze = bundle ? bundle.nStanze : null;
   let bundlePromoTxt = '';
   let feePromoTxt = '';
+  let crmPromoTxt = '';
+  let visibilityPromoTxt = '';
+
   if (bundle) {
     const prezzo = prezzoBundle(bundle.nome, nStanze, true);
     bundlePromoTxt = `<div class="promo-voce"><b>${bundle.nome}</b> <span>${prezzo} € /mese</span> <span class="promo-label">Promo</span></div>`;
@@ -305,31 +269,43 @@ function aggiornaPromoPanel() {
   } else if (fee) {
     feePromoTxt = `<div class="promo-voce"><b>${fee.nome}</b> <span style="color:#bbb">—</span></div>`;
   }
-  // Visibility MioDottore in promo
-  let visibilityPromoTxt = '';
   const visibility = serviziSelezionati.find(s => s.nome === "Visibility MioDottore");
   if (visibility) {
     let nMedici = visibility.quantita;
     if (nMedici < 5) nMedici = 5;
     if (nMedici > 99) nMedici = 99;
-    const prezzoUnit = getPrezzoUnitarioVisibility(nMedici);
-    const prezzoBase = prezzoUnit * nMedici;
-    const prezzoTot = Math.round(prezzoBase * 1.15);
+    const prezzoTot = prezzoVisibility(nMedici, true);
     visibilityPromoTxt = `<div class="promo-voce"><b>Visibility MioDottore</b> <span>${prezzoTot} € /mese</span> <span class="promo-label">Promo</span></div>`;
   }
+  const crm = serviziSelezionati.find(s => s.nome === "CRM MioDottore");
+  if (crm) {
+    crmPromoTxt = `<div class="promo-voce"><b>CRM MioDottore</b> <span>${(crm.quantita || 1) * 10} € /mese</span></div>`;
+  }
+
+  // Totali PROMO (bundle+visibility scontati, crm a prezzo pieno, attivazione promo)
+  let totaleMensilePromo = 0, totaleSetupPromo = 0;
+  if (bundle) totaleMensilePromo += prezzoBundle(bundle.nome, nStanze, true);
+  if (visibility) totaleMensilePromo += prezzoVisibility(visibility.quantita, true);
+  if (crm) totaleMensilePromo += (crm.quantita || 1) * 10;
+  if (fee && nStanze) totaleSetupPromo += prezzoSetup(nStanze, true);
 
   panel.innerHTML = `
     <div class="promo-title">Offerta Riservata</div>
     ${bundlePromoTxt}
-    ${feePromoTxt}
+    ${crmPromoTxt}
     ${visibilityPromoTxt}
+    ${feePromoTxt}
+    <div class="promo-totali" style="margin-top:16px; border-top:1px solid #e5e7eb; padding-top:12px;">
+      <div>Totale Mensile Promo: <strong>${totaleMensilePromo} € /mese</strong></div>
+      <div>Totale Una Tantum Promo: <strong>${totaleSetupPromo} €</strong></div>
+    </div>
     <div class="promo-note">I prezzi promo sono riservati e disponibili solo ora.</div>
   `;
-  panel.style.display = (bundlePromoTxt || feePromoTxt || visibilityPromoTxt) ? 'block' : 'none';
+  panel.style.display = (bundlePromoTxt || crmPromoTxt || visibilityPromoTxt || feePromoTxt) ? 'block' : 'none';
   if (panel.style.display === 'block') setTimeout(()=>{ panel.scrollIntoView({behavior:'smooth'}); },200);
 }
 
-// --- QUANTITÀ (bundle, visibility, add-on)
+// QUANTITÀ (bundle, visibility)
 window.modificaQuantita = function(idx, delta, min=1, max=50) {
   let serv = serviziSelezionati[idx];
   if (serv.tipo === 'bundle') {
@@ -343,11 +319,6 @@ window.modificaQuantita = function(idx, delta, min=1, max=50) {
     let nuovo = serv.quantita + delta;
     if (nuovo < 5) nuovo = 5;
     if (nuovo > 99) nuovo = 99;
-    serv.quantita = nuovo;
-  } else if (serv.hasQuantita) {
-    let nuovo = serv.quantita + delta;
-    if (nuovo < min) nuovo = min;
-    if (nuovo > max) nuovo = max;
     serv.quantita = nuovo;
   }
   aggiornaPreventivo();
@@ -365,10 +336,6 @@ window.modificaQuantitaDiretta = function(val, idx, min=1, max=50) {
     if (nuovo < 5) nuovo = 5;
     if (nuovo > 99) nuovo = 99;
     serv.quantita = nuovo;
-  } else if (serv.hasQuantita) {
-    if (nuovo < min) nuovo = min;
-    if (nuovo > max) nuovo = max;
-    serv.quantita = nuovo;
   }
   aggiornaPreventivo();
 };
@@ -378,7 +345,7 @@ window.rimuoviVocePreventivo = function(idx) {
   aggiornaPreventivo();
 };
 
-// --- DRAG & DROP ---
+// DRAG & DROP
 document.querySelectorAll('.card-servizio').forEach(card => {
   card.addEventListener('dragstart', function (e) {
     e.dataTransfer.effectAllowed = "copy";
@@ -464,28 +431,10 @@ dropzone.addEventListener('drop', function (e) {
   }
   // No doppioni
   if (serviziSelezionati.some(s => s.nome === data.nome)) return;
-  // Add-on a quantità
-  if (data.hasQuantita) {
-    serviziSelezionati.push({
-      nome: data.nome,
-      prezzo: data.prezzo,
-      tipo: data.tipo,
-      hasQuantita: true,
-      labelQuantita: data.labelQuantita || data.labelqty || "",
-      quantita: 1
-    });
-  } else {
-    // Modulo standard
-    serviziSelezionati.push({
-      nome: data.nome,
-      prezzo: data.prezzo,
-      tipo: data.tipo
-    });
-  }
   aggiornaPreventivo();
 });
 
-// --- BOTTONI
+// --- BOTTONI ---
 document.querySelectorAll('.azioni .btn').forEach(btn => {
   btn.addEventListener('click', function () {
     const txt = btn.textContent.trim();
@@ -496,14 +445,135 @@ document.querySelectorAll('.azioni .btn').forEach(btn => {
           aggiornaPreventivo();
         });
       }
-    } else if (txt === "Genera PDF") {
-      alert("Simulazione: generazione PDF.");
-    } else if (txt === "Procedi") {
-      alert("Simulazione: procedi.");
+    } else if (txt === "Esporta documento") {
+      mostraModalExport();
     }
   });
 });
 
+// Google Calendar
+document.getElementById('btn-calendar').onclick = function() {
+  const titolo = encodeURIComponent("Appuntamento QPWON");
+  const dettagli = encodeURIComponent("Conferma appuntamento per la presentazione del preventivo QPWON.");
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titolo}&details=${dettagli}`;
+  window.open(url, '_blank');
+};
+// DocuSign
+document.getElementById('btn-docusign').onclick = function() {
+  window.open("https://www.docusign.com/it", '_blank'); // Sostituisci con il TUO link!
+};
+
+// MODAL EXPORT TXT
+function mostraModalExport() {
+  if (document.getElementById('export-modal')) return;
+  let modal = document.createElement('div');
+  modal.id = 'export-modal';
+  modal.style.cssText = `
+    position:fixed; left:0;top:0;width:100vw;height:100vh;z-index:99;background:#0007;display:flex;align-items:center;justify-content:center;
+  `;
+  modal.innerHTML = `
+    <div style="background:#fff;padding:32px 24px 18px 24px;border-radius:13px;box-shadow:0 8px 32px #0004;min-width:320px;max-width:90vw;">
+      <h3 style="margin-bottom:12px;">Esporta Documento</h3>
+      <label>Nome struttura<br><input id="ex_nome" type="text" style="width:100%;margin-bottom:8px;" /></label><br>
+      <label>Referente<br><input id="ex_ref" type="text" style="width:100%;margin-bottom:8px;" /></label><br>
+      <label>Email<br><input id="ex_mail" type="email" style="width:100%;margin-bottom:8px;" /></label><br>
+      <label>Telefono<br><input id="ex_tel" type="text" style="width:100%;margin-bottom:14px;" /></label><br>
+      <div style="text-align:right;margin-top:8px;">
+        <button onclick="document.getElementById('export-modal').remove()" style="margin-right:15px;">Annulla</button>
+        <button id="export-continua-btn" style="background:#009ca6;color:#fff;padding:7px 19px;border-radius:6px;border:none;font-weight:600;">Continua</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  document.getElementById('export-continua-btn').onclick = function() {
+    const nome = document.getElementById('ex_nome').value.trim();
+    const ref  = document.getElementById('ex_ref').value.trim();
+    const mail = document.getElementById('ex_mail').value.trim();
+    const tel  = document.getElementById('ex_tel').value.trim();
+    if (!nome || !ref || !mail || !tel) {
+      alert('Compila tutti i campi!');
+      return;
+    }
+    modal.remove();
+    esportaPreventivoTXT({ nome, ref, mail, tel });
+  };
+}
+
+// GENERAZIONE E DOWNLOAD DEL TXT
+function esportaPreventivoTXT(dati) {
+  let txt = '';
+  txt += `Preventivo per struttura: ${dati.nome}\n`;
+  txt += `Referente: ${dati.ref}\n`;
+  txt += `Email: ${dati.mail}\n`;
+  txt += `Telefono: ${dati.tel}\n`;
+  txt += `Data esportazione: ${new Date().toLocaleString()}\n`;
+  txt += `---------------------------------------\n\n`;
+
+  txt += `SERVIZI SELEZIONATI - PREZZI DI LISTINO\n`;
+  serviziSelezionati.forEach(serv => {
+    if (serv.tipo === 'bundle') {
+      txt += `- ${serv.nome} (${serv.nStanze} stanze): ${prezzoBundle(serv.nome, serv.nStanze, false)} €/mese\n`;
+    } else if (serv.nome === 'CRM MioDottore') {
+      txt += `- CRM MioDottore (${serv.quantita} stanze): ${serv.quantita * 10} €/mese\n`;
+    } else if (serv.nome === 'Visibility MioDottore') {
+      txt += `- Visibility MioDottore (${serv.quantita} medici): ${prezzoVisibility(serv.quantita, false)} €/mese\n`;
+    } else if (serv.fixed && serv.prezzo !== '') {
+      txt += `- ${serv.nome}: ${serv.prezzo} € una tantum\n`;
+    }
+  });
+  let totaleMensile = 0, totaleSetup = 0;
+  serviziSelezionati.forEach(serv => {
+    if (serv.fixed && serv.prezzo !== '') totaleSetup += parseInt(serv.prezzo);
+    else if (serv.tipo === 'bundle') totaleMensile += prezzoBundle(serv.nome, serv.nStanze, false);
+    else if (serv.nome === "CRM MioDottore") totaleMensile += (serv.quantita || 1) * 10;
+    else if (serv.nome === "Visibility MioDottore") totaleMensile += prezzoVisibility(serv.quantita, false);
+  });
+  txt += `\nTotale canone mensile (listino): ${totaleMensile} €\n`;
+  txt += `Totale una tantum (listino): ${totaleSetup} €\n`;
+
+  txt += `\n---------------------------------------\n`;
+
+  if (promoAttiva) {
+    txt += `\nOFFERTA RISERVATA (PROMO):\n`;
+
+    const bundle = serviziSelezionati.find(s => s.tipo === 'bundle');
+    const nStanze = bundle ? bundle.nStanze : null;
+    if (bundle) txt += `- ${bundle.nome} (${nStanze} stanze): ${prezzoBundle(bundle.nome, nStanze, true)} €/mese (promo)\n`;
+    const crm = serviziSelezionati.find(s => s.nome === 'CRM MioDottore');
+    if (crm) txt += `- CRM MioDottore (${crm.quantita} stanze): ${crm.quantita * 10} €/mese\n`;
+    const visibility = serviziSelezionati.find(s => s.nome === 'Visibility MioDottore');
+    if (visibility) txt += `- Visibility MioDottore (${visibility.quantita} medici): ${prezzoVisibility(visibility.quantita, true)} €/mese (promo)\n`;
+    const fee = serviziSelezionati.find(s => s.fixed && nStanze);
+    if (fee) txt += `- ${fee.nome}: ${prezzoSetup(nStanze, true)} € una tantum (promo)\n`;
+
+    let totaleMensilePromo = 0, totaleSetupPromo = 0;
+    if (bundle) totaleMensilePromo += prezzoBundle(bundle.nome, nStanze, true);
+    if (crm) totaleMensilePromo += (crm.quantita || 1) * 10;
+    if (visibility) totaleMensilePromo += prezzoVisibility(visibility.quantita, true);
+    if (fee && nStanze) totaleSetupPromo += prezzoSetup(nStanze, true);
+
+    txt += `\nTotale canone mensile promo: ${totaleMensilePromo} €\n`;
+    txt += `Totale una tantum promo: ${totaleSetupPromo} €\n`;
+  }
+
+  txt += `\n---------------------------------------\n`;
+  txt += `Documento generato con QPWON Preventivatore\n`;
+
+  const blob = new Blob([txt], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'preventivo.txt';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
+}
+
 // Prima render
 aggiornaPreventivo();
+
 
