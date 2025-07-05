@@ -18,7 +18,7 @@
 </head>
 <body>
 
-   <div class="container">
+  <div class="container">
     <!-- Catalogo servizi/prodotti -->
     <section class="catalog">
       <h2>Catalogo Servizi</h2>
@@ -28,8 +28,8 @@
         <div class="card-servizio" draggable="true" data-nome="VIP" data-prezzo="0" data-tipo="bundle">VIP<br><small>Prezzo in base alle stanze</small></div>
         <div class="card-servizio" draggable="true" data-nome="CRM MioDottore" data-prezzo="10" data-tipo="mensile" data-hasqty="true" data-labelqty="Stanze">CRM MioDottore<br><small>10 €/mese per stanza</small></div>
         <div class="card-servizio" draggable="true" data-nome="Visibility MioDottore" data-prezzo="0" data-tipo="mensile" data-hasqty="true" data-labelqty="Medici">Visibility MioDottore<br><small>Prezzo in base ai medici</small></div>
-        <div class="card-servizio" draggable="true" data-nome="Tablet Firma Digitale" data-prezzo="429" data-tipo="setup">Tablet Firma Digitale<br><small>429 € una tantum</small></div>
-        <div class="card-servizio" draggable="true" data-nome="Lettore Tessera" data-prezzo="79" data-tipo="setup">Lettore Tessera<br><small>79 € una tantum</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Tablet Firma Digitale" data-prezzo="429" data-tipo="setup" data-hasqty="true" data-labelqty="Tablet">Tablet Firma Digitale<br><small>429 € una tantum per tablet</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Lettore Tessera" data-prezzo="79" data-tipo="setup" data-hasqty="true" data-labelqty="Lettori">Lettore Tessera<br><small>79 € una tantum per lettore</small></div>
         <div class="card-servizio" draggable="true" data-nome="ECR" data-prezzo="70" data-tipo="mensile">ECR<br><small>70 €/mese</small></div>
         <div class="card-servizio" draggable="true" data-nome="App personalizzata (30-50 profili)" data-prezzo="100" data-tipo="mensile">App personalizzata<br><small>100 €/mese (30-50 profili)</small></div>
         <div class="card-servizio" draggable="true" data-nome="App personalizzata (51-100 profili)" data-prezzo="150" data-tipo="mensile">App personalizzata<br><small>150 €/mese (51-100 profili)</small></div>
@@ -68,18 +68,6 @@
     </section>
   </div>
   <script src="script.js"></script>
-  <script>
-    // Collega i nuovi bottoni a Google Calendar e DocuSign
-    document.getElementById('btn-calendar').onclick = function() {
-      const titolo = encodeURIComponent("Appuntamento QPWON");
-      const dettagli = encodeURIComponent("Conferma appuntamento per la presentazione del preventivo QPWON.");
-      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titolo}&details=${dettagli}`;
-      window.open(url, '_blank');
-    };
-    document.getElementById('btn-docusign').onclick = function() {
-      window.open("https://www.docusign.com/it", '_blank'); // Sostituisci con il TUO link DocuSign!
-    };
-  </script>
 </body>
 </html>
 
