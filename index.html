@@ -17,129 +17,56 @@
 </head>
 <body>
 
-  <!-- Layout principale -->
-  <div class="layout-container">
-    
-    <!-- Colonna sinistra -->
-    <section class="presentation">
-      <img src="https://www.giponext.it/Images/logo-gipo-next-primary-tagline.svg" class="logo" alt="GipoNext logo" />
-      <h1>Il gestionale per ambulatori<br>più evoluto in Italia</h1>
-      <p class="lead">Digitalizza la tua struttura sanitaria con uno strumento completo, sicuro e facile da usare.</p>
-      <ul class="features">
-        <li>☁️ 100% in cloud, accessibile ovunque</li>
-        <li>🔐 Dati protetti con standard elevati</li>
-        <li>⚙️ Integrazione con MioDottore</li>
-        <li>✍️ Firma digitale e prenotazioni automatiche</li>
-      </ul>
-      <div class="badge">Scelto da oltre 4.000 strutture sanitarie</div>
+   <div class="container">
+    <!-- Catalogo servizi/prodotti -->
+    <section class="catalog">
+      <h2>Catalogo Servizi</h2>
+      <div class="servizi-lista">
+        <!-- BUNDLE GIPO -->
+        <div class="card-servizio" draggable="true" data-nome="Starter" data-prezzo="0" data-tipo="bundle">Starter<br><small>Prezzo in base alle stanze</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Plus" data-prezzo="0" data-tipo="bundle">Plus<br><small>Prezzo in base alle stanze</small></div>
+        <div class="card-servizio" draggable="true" data-nome="VIP" data-prezzo="0" data-tipo="bundle">VIP<br><small>Prezzo in base alle stanze</small></div>
+        <!-- MODULI MENSILI, SETUP, E CON QUANTITÀ -->
+        <div class="card-servizio" draggable="true" data-nome="CRM MioDottore" data-prezzo="10" data-tipo="mensile" data-hasqty="true" data-labelqty="Stanze">CRM MioDottore<br><small>10 €/mese per stanza</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Visibility MioDottore" data-prezzo="0" data-tipo="mensile" data-hasqty="true" data-labelqty="Medici">Visibility MioDottore<br><small>Prezzo in base ai medici</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Tablet Firma Digitale" data-prezzo="429" data-tipo="setup">Tablet Firma Digitale<br><small>429 € una tantum</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Lettore Tessera" data-prezzo="79" data-tipo="setup">Lettore Tessera<br><small>79 € una tantum</small></div>
+        <div class="card-servizio" draggable="true" data-nome="ECR" data-prezzo="70" data-tipo="mensile">ECR<br><small>70 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="App personalizzata (30-50 profili)" data-prezzo="100" data-tipo="mensile">App personalizzata<br><small>100 €/mese (30-50 profili)</small></div>
+        <div class="card-servizio" draggable="true" data-nome="App personalizzata (51-100 profili)" data-prezzo="150" data-tipo="mensile">App personalizzata<br><small>150 €/mese (51-100 profili)</small></div>
+        <div class="card-servizio" draggable="true" data-nome="App personalizzata (101-150 profili)" data-prezzo="200" data-tipo="mensile">App personalizzata<br><small>200 €/mese (101-150 profili)</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Medicina dello Sport" data-prezzo="35" data-tipo="mensile">Medicina dello Sport<br><small>35 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Sviluppo tracciati" data-prezzo="75" data-tipo="mensile">Sviluppo tracciati<br><small>75 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Integrazione FSE" data-prezzo="75" data-tipo="mensile">Integrazione FSE<br><small>75 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Integrazione DEMA" data-prezzo="75" data-tipo="mensile">Integrazione DEMA<br><small>75 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="SmartQ (elimina code)" data-prezzo="90" data-tipo="mensile">SmartQ (elimina code)<br><small>90 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Medicina del Lavoro" data-prezzo="35" data-tipo="mensile">Medicina del Lavoro<br><small>35 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Integrazione CUP" data-prezzo="75" data-tipo="mensile">Integrazione CUP<br><small>75 €/mese</small></div>
+        <div class="card-servizio" draggable="true" data-nome="GIPO Sign" data-prezzo="10" data-tipo="mensile" data-hasqty="true" data-labelqty="Profili">GIPO Sign<br><small>10 €/mese per profilo</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Multi sede" data-prezzo="99" data-tipo="mensile" data-hasqty="true" data-labelqty="Sedi">Multi sede<br><small>99 €/mese per sede</small></div>
+        <div class="card-servizio" draggable="true" data-nome="GIPO Dental" data-prezzo="40" data-tipo="mensile" data-hasqty="true" data-labelqty="Poltrone">GIPO Dental<br><small>40 €/mese per poltrona</small></div>
+        <div class="card-servizio" draggable="true" data-nome="Licenza aggiuntiva NOA" data-prezzo="15" data-tipo="mensile" data-hasqty="true" data-labelqty="Licenze">Licenza aggiuntiva NOA<br><small>15 €/mese per licenza</small></div>
+      </div>
     </section>
 
-    <!-- Colonna destra -->
-    <section class="form-box">
-      <form id="calculator-form">
-        <h2>Configura il tuo preventivo</h2>
-
-        <div class="form-group">
-          <label for="rooms">N° Ambulatori</label>
-          <input type="number" id="rooms" min="1" required />
-        </div>
-
-        <div class="form-group">
-          <label for="doctors">N° Medici</label>
-          <input type="number" id="doctors" min="1" required />
-        </div>
-
-        <div class="form-group">
-          <label for="bundle">Versione GIPO</label>
-          <select id="bundle">
-            <option value="starter">Starter</option>
-            <option value="plus" selected>Plus</option>
-            <option value="vip">VIP</option>
-          </select>
-        </div>
-
-        <div class="form-group checkbox">
-          <label><input type="checkbox" id="crm" /> Includi CRM MioDottore</label>
-        </div>
-
-        <div class="form-group checkbox">
-          <label><input type="checkbox" id="tabletFirma" /> Tablet Firma Digitale (+429€)</label>
-        </div>
-
-        <div class="form-group checkbox">
-          <label><input type="checkbox" id="lettoreTessera" /> Lettore Tessera Sanitaria (+79€)</label>
-        </div>
-
-        <button type="button" id="calculate-btn" class="btn-primary">Calcola</button>
-      </form>
+    <!-- Dropzone Preventivo -->
+    <section class="preventivo">
+      <h2>Il tuo preventivo</h2>
+      <div class="dropzone" id="dropzone">
+        <p style="color:#94a3b8;margin:0;">Trascina qui i servizi che vuoi attivare</p>
+      </div>
+      <div class="totali">
+        <div>Canone Mensile Totale: <span id="totale-mensile">0 €</span></div>
+        <div>Setup Una Tantum: <span id="totale-setup">0 €</span></div>
+      </div>
+      <div class="azioni">
+        <button class="btn btn-outline">Verifica condizioni riservate</button>
+        <button class="btn btn-primary">Genera PDF</button>
+        <button class="btn btn-outline">Procedi</button>
+      </div>
+      <!-- Barra di avanzamento e Offerta Riservata vengono generati dal JS -->
     </section>
   </div>
-
-  <!-- Prezzi a listino -->
-  <section id="listino-panel" class="card hidden">
-    <h2>Risultato a listino</h2>
-    <div class="price-row"><span>Canone mensile</span><strong id="monthly-list-price">-- €</strong></div>
-    <div class="price-row"><span>Setup una tantum</span><strong id="setup-list-price">-- €</strong></div>
-    <div class="price-row"><span>Totale una tantum</span><strong id="setup-total">-- €</strong></div>
-
-    <!-- Nuovo bottone procedi -->
-    <a href="https://apps.docusign.com/send/templates?view=shared" target="_blank" class="btn-primary full">
-      Procedi e firma ora con DocuSign
-    </a>
-
-    <button id="check-btn" class="btn-outline">Verifica condizioni riservate</button>
-  </section>
-
-  <!-- Verifica promozione -->
-  <section id="loading-spinner" class="card hidden">
-    <h2>Sto verificando<br />se ci sono condizioni riservate…</h2>
-    
-    <div class="progress-container">
-      <div class="progress-bar" id="progressBar"></div>
-    </div>
-
-    <p class="verifica-msg">
-      <span class="loader-icon">⏳</span>
-      <span id="countdown">Attendere 15 secondi…</span>
-    </p>
-  </section>
-
-  <!-- Offerta riservata -->
-  <section id="dettaglio-panel" class="card hidden">
-    <h2 class="highlight">Ottime notizie!</h2>
-    <p class="subtitle">È disponibile un’offerta riservata per la tua configurazione.</p>
-
-    <div class="price-row">
-      <span>Canone mensile</span>
-      <div>
-        <strong id="default-monthly-price" class="promo-price">-- €</strong>
-        <span class="crossed" id="list-monthly-crossed">-- €</span>
-      </div>
-    </div>
-
-    <div class="price-row">
-      <span>Setup una tantum</span>
-      <div>
-        <strong id="setup-fee" class="promo-price">-- €</strong>
-        <span class="crossed" id="list-setup-crossed">-- €</span>
-      </div>
-    </div>
-
-    <div class="price-row">
-      <span>Bonus incluso</span>
-      <strong class="bonus">Formazione e Assistenza</strong>
-    </div>
-
-    <div class="price-row">
-      <span>⏱️ Valida ancora per</span>
-      <strong class="timer">2 h 38 min</strong>
-    </div>
-
-    <a href="https://apps.docusign.com/send/templates?view=shared" target="_blank" class="btn-primary full">
-      Blocca ora e firma con DocuSign
-    </a>
-  </section>
-
-  <script src="script.js" defer></script>
+  <script src="script.js"></script>
 </body>
 </html>
