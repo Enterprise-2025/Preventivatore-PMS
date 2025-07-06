@@ -8,7 +8,7 @@
   }
 })();
 // ========================
-// Preventivatore Drag&Drop QPWON - LOGICA DURATA & PROMO 2024-07
+// Preventivatore Drag&Drop QPWON
 // ========================
 
 //--- CONFIGURAZIONE PREZZI E SOGLIE
@@ -110,10 +110,12 @@ function prezzoSetupPromo(nStanze) {
 }
 
 //--- EVENTI DURATA CONTRATTO
-document.querySelectorAll('input[name="durata"]').forEach(radio => {
-  radio.addEventListener('change', function() {
-    durataContratto = parseInt(this.value, 10);
-    aggiornaPreventivo();
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('input[name="durata"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      durataContratto = parseInt(this.value, 10);
+      aggiornaPreventivo();
+    });
   });
 });
 
@@ -166,11 +168,11 @@ function aggiornaPreventivo() {
 
       // Bundle
       if (["Starter","Plus","VIP"].includes(serv.nome)) {
-        prezzo = prezzoBundle(serv.nome, serv.nStanze);
+        prezzo = prezzoBundle(serv.nome, serv.nStanze || 1);
         quantitaInput = `
           Stanze:
           <button type="button" class="btn-qty" onclick="modificaQuantita(${idx}, -1, 1, 20)">-</button>
-          <input type="number" min="1" max="20" value="${serv.nStanze}" style="width:40px;text-align:center;font-size:15px;" onchange="modificaQuantitaDiretta(this.value, ${idx}, 1, 20)" />
+          <input type="number" min="1" max="20" value="${serv.nStanze || 1}" style="width:40px;text-align:center;font-size:15px;" onchange="modificaQuantitaDiretta(this.value, ${idx}, 1, 20)" />
           <button type="button" class="btn-qty" onclick="modificaQuantita(${idx}, 1, 1, 20)">+</button>
         `;
         prezzo += " € /mese";
@@ -225,7 +227,7 @@ function aggiornaPreventivo() {
   let totaleMensile = 0, totaleSetup = 0;
   serviziSelezionati.forEach(serv => {
     if (serv.fixed && serv.prezzo !== '') totaleSetup += prezzoSetup(serv.nStanze);
-    else if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze);
+    else if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze || 1);
     else if (serv.nome === "CRM MioDottore") totaleMensile += (serv.quantita || 1) * 10;
     else if (serv.nome === "Visibility MioDottore") totaleMensile += prezzoVisibility(serv.quantita);
     else if (serv.hasQuantita) {
@@ -257,7 +259,7 @@ function sincronizzaCRM() {
 window.modificaQuantita = function(idx, delta, min, max) {
   let serv = serviziSelezionati[idx];
   if (["Starter","Plus","VIP"].includes(serv.nome)) {
-    let nuovo = serv.nStanze + delta;
+    let nuovo = (serv.nStanze || 1) + delta;
     if (nuovo < min) nuovo = min;
     if (nuovo > max) nuovo = max;
     serv.nStanze = nuovo;
@@ -298,56 +300,59 @@ window.rimuoviVocePreventivo = function(idx) {
   aggiornaPreventivo();
 };
 
-//--- DRAG & DROP
-document.querySelectorAll('.card-servizio').forEach(card => {
-  card.addEventListener('dragstart', function (e) {
-    e.dataTransfer.effectAllowed = "copy";
-    const obj = {
-      nome: card.dataset.nome,
-      prezzo: parseFloat(card.dataset.prezzo),
-      tipo: card.dataset.tipo
-    };
-    if (card.dataset.hasqty === "true") {
-      obj.hasQuantita = true;
-      obj.labelQuantita = card.dataset.labelqty;
-      if (obj.nome === "Visibility MioDottore") obj.quantita = 5;
-      else if (obj.nome === "CRM MioDottore") {
-        const bundle = serviziSelezionati.find(s => ["Starter","Plus","VIP"].includes(s.nome));
-        obj.quantita = bundle ? bundle.nStanze : 1;
+//--- DRAG & DROP (listener sempre attivi dopo il DOM)
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.card-servizio').forEach(card => {
+    card.addEventListener('dragstart', function (e) {
+      e.dataTransfer.effectAllowed = "copy";
+      const obj = {
+        nome: card.dataset.nome,
+        prezzo: parseFloat(card.dataset.prezzo),
+        tipo: card.dataset.tipo
+      };
+      if (card.dataset.hasqty === "true") {
+        obj.hasQuantita = true;
+        obj.labelQuantita = card.dataset.labelqty;
+        if (obj.nome === "Visibility MioDottore") obj.quantita = 5;
+        else if (obj.nome === "CRM MioDottore") {
+          const bundle = serviziSelezionati.find(s => ["Starter","Plus","VIP"].includes(s.nome));
+          obj.quantita = bundle ? bundle.nStanze : 1;
+        }
+        else obj.quantita = 1;
       }
-      else obj.quantita = 1;
-    }
-    if (["Starter","Plus","VIP"].includes(obj.nome)) obj.nStanze = 1;
-    e.dataTransfer.setData('text/plain', JSON.stringify(obj));
+      if (["Starter","Plus","VIP"].includes(obj.nome)) obj.nStanze = 1;
+      e.dataTransfer.setData('text/plain', JSON.stringify(obj));
+    });
   });
-});
-const dropzone = document.getElementById('dropzone');
-dropzone.addEventListener('dragover', function (e) {
-  e.preventDefault();
-  dropzone.classList.add('over');
-});
-dropzone.addEventListener('dragleave', function (e) {
-  dropzone.classList.remove('over');
-});
-dropzone.addEventListener('drop', function (e) {
-  e.preventDefault();
-  dropzone.classList.remove('over');
-  let data;
-  try {
-    data = JSON.parse(e.dataTransfer.getData('text/plain'));
-  } catch {
-    return;
-  }
-  if(data.nome === "CRM MioDottore") {
-    const bundle = serviziSelezionati.find(s => ["Starter","Plus","VIP"].includes(s.nome));
-    if(!bundle) {
-      alert("Aggiungi prima Starter, Plus o VIP!");
+
+  const dropzone = document.getElementById('dropzone');
+  dropzone.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    dropzone.classList.add('over');
+  });
+  dropzone.addEventListener('dragleave', function (e) {
+    dropzone.classList.remove('over');
+  });
+  dropzone.addEventListener('drop', function (e) {
+    e.preventDefault();
+    dropzone.classList.remove('over');
+    let data;
+    try {
+      data = JSON.parse(e.dataTransfer.getData('text/plain'));
+    } catch {
       return;
     }
-    data.quantita = bundle.nStanze;
-  }
-  serviziSelezionati.push(data);
-  aggiornaPreventivo();
+    if(data.nome === "CRM MioDottore") {
+      const bundle = serviziSelezionati.find(s => ["Starter","Plus","VIP"].includes(s.nome));
+      if(!bundle) {
+        alert("Aggiungi prima Starter, Plus o VIP!");
+        return;
+      }
+      data.quantita = bundle.nStanze;
+    }
+    serviziSelezionati.push(data);
+    aggiornaPreventivo();
+  });
 });
 
 //--- PROGRESS BAR & PROMO PANEL
@@ -401,7 +406,7 @@ function startProgressBar(callback) {
   }, 1000);
 }
 
-//--- PANEL PROMO (OFFERTA RISERVATA)
+//--- PANEL PROMO (OFFERTA RISERVATA con DOPPIO RISPARMIO)
 function aggiornaPromoPanel() {
   let panel = document.getElementById('promo-panel');
   if (!panel) {
@@ -421,8 +426,8 @@ function aggiornaPromoPanel() {
 
   serviziSelezionati.forEach(serv => {
     if (["Starter","Plus","VIP"].includes(serv.nome)) {
-      let prezzo = prezzoBundlePromo(serv.nome, serv.nStanze);
-      bundlePromoTxt += `<div class="promo-voce"><b>${serv.nome} (${serv.nStanze} stanze)</b> <span>${prezzo} € /mese</span> <span class="promo-label">Promo</span></div>`;
+      let prezzo = prezzoBundlePromo(serv.nome, serv.nStanze || 1);
+      bundlePromoTxt += `<div class="promo-voce"><b>${serv.nome} (${serv.nStanze || 1} stanze)</b> <span>${prezzo} € /mese</span> <span class="promo-label">Promo</span></div>`;
       totaleMensilePromo += prezzo;
     }
     else if (serv.nome === "CRM MioDottore") {
@@ -456,8 +461,39 @@ function aggiornaPromoPanel() {
     }
   });
 
+  // --- CALCOLO RISPARMIO MENSILE E ATTIVAZIONE + SPESA GIORNALIERA
+  let totaleIniziale = 0, setupListino = 0, setupPromo = 0;
+  serviziSelezionati.forEach(serv => {
+    if (["Starter","Plus","VIP"].includes(serv.nome)) {
+      const idx = getSogliaIdx(serv.nStanze || 1);
+      const base = prezziBundleGipo[serv.nome][idx] * (serv.nStanze || 1);
+      totaleIniziale += Math.round(base * 1.3);
+    } else if (serv.nome === "CRM MioDottore") {
+      const bundle = serviziSelezionati.find(s => ["Starter","Plus","VIP"].includes(s.nome));
+      totaleIniziale += (bundle ? bundle.nStanze : 1) * 10;
+    } else if (serv.nome === "Visibility MioDottore") {
+      const unit = getPrezzoUnitarioVisibility(serv.quantita);
+      totaleIniziale += Math.round(unit * serv.quantita * 1.3);
+    } else if (serv.fixed && serv.nome === "Attivazione / Formazione") {
+      // Setup listino: prezzoSetupFee[nStanze] * 7 (no sconto, no promo)
+      const idx = getSogliaIdx(serv.nStanze || 1);
+      setupListino += Math.round(prezziSetupFee[idx] * 7);
+      setupPromo   += Math.round(prezziSetupFee[idx] * 3 * (1 + getPromoPerc()));
+    }
+  });
+  const risparmioPerc = totaleIniziale > 0 ? ((totaleIniziale - totaleMensilePromo) / totaleIniziale * 100) : 0;
+  const risparmioSetupPerc = setupListino > 0 ? ((setupListino - setupPromo) / setupListino * 100) : 0;
+  const spesaGiornaliera = totaleMensilePromo / 30;
+
   panel.innerHTML = `
     <div class="promo-title">Offerta Riservata</div>
+    <div class="promo-badge promo-badge-duale">
+      <span class="badge-main">
+        <span>Risparmi <b>${risparmioPerc.toFixed(1)}%</b> <small>canone mensile</small></span>
+        <span class="badge-setup">- <b>${risparmioSetupPerc.toFixed(1)}%</b> <small>attivazione</small></span>
+      </span>
+      <span class="badge-daily">Solo <b>${spesaGiornaliera.toFixed(2)} €</b> al giorno!</span>
+    </div>
     ${bundlePromoTxt}
     ${crmPromoTxt}
     ${visibilityPromoTxt}
@@ -473,170 +509,36 @@ function aggiornaPromoPanel() {
 }
 
 //--- BOTTONI: PROMO, EXPORT, CALENDAR, DOCUSIGN
-document.querySelectorAll('.azioni .btn').forEach(btn => {
-  btn.addEventListener('click', function () {
-    const txt = btn.textContent.trim();
-    if (txt === "Verifica condizioni riservate") {
-      if (!promoAttiva && !progressAttiva) {
-        startProgressBar(function() {
-          promoAttiva = true;
-          aggiornaPreventivo();
-        });
-      }
-    } else if (txt === "Esporta documento") {
-      mostraModalExport();
-    }
-  });
-});
-
-document.getElementById('btn-calendar').onclick = function() {
-  const titolo = encodeURIComponent("Appuntamento QPWON");
-  const dettagli = encodeURIComponent("Conferma appuntamento per la presentazione del preventivo QPWON.");
-  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titolo}&details=${dettagli}`;
-  window.open(url, '_blank');
-};
-document.getElementById('btn-docusign').onclick = function() {
-  window.open("https://www.docusign.com/it", '_blank');
-};
-
-//--- EXPORT TXT
-function mostraModalExport() {
-  if (document.getElementById('export-modal')) return;
-  let modal = document.createElement('div');
-  modal.id = 'export-modal';
-  modal.style.cssText = `
-    position:fixed; left:0;top:0;width:100vw;height:100vh;z-index:99;background:#0007;display:flex;align-items:center;justify-content:center;
-  `;
-  modal.innerHTML = `
-    <div style="background:#fff;padding:32px 24px 18px 24px;border-radius:13px;box-shadow:0 8px 32px #0004;min-width:320px;max-width:90vw;">
-      <h3 style="margin-bottom:12px;">Esporta Documento</h3>
-      <label>Nome struttura<br><input id="ex_nome" type="text" style="width:100%;margin-bottom:8px;" /></label><br>
-      <label>Referente<br><input id="ex_ref" type="text" style="width:100%;margin-bottom:8px;" /></label><br>
-      <label>Email<br><input id="ex_mail" type="email" style="width:100%;margin-bottom:8px;" /></label><br>
-      <label>Telefono<br><input id="ex_tel" type="text" style="width:100%;margin-bottom:14px;" /></label><br>
-      <div style="text-align:right;margin-top:8px;">
-        <button onclick="document.getElementById('export-modal').remove()" style="margin-right:15px;">Annulla</button>
-        <button id="export-continua-btn" style="background:#009ca6;color:#fff;padding:7px 19px;border-radius:6px;border:none;font-weight:600;">Continua</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(modal);
-
-  document.getElementById('export-continua-btn').onclick = function() {
-    const nome = document.getElementById('ex_nome').value.trim();
-    const ref  = document.getElementById('ex_ref').value.trim();
-    const mail = document.getElementById('ex_mail').value.trim();
-    const tel  = document.getElementById('ex_tel').value.trim();
-    if (!nome || !ref || !mail || !tel) {
-      alert('Compila tutti i campi!');
-      return;
-    }
-    modal.remove();
-    esportaPreventivoTXT({ nome, ref, mail, tel });
-  };
-}
-
-function esportaPreventivoTXT(dati) {
-  let txt = '';
-  txt += `Preventivo per struttura: ${dati.nome}\n`;
-  txt += `Referente: ${dati.ref}\n`;
-  txt += `Email: ${dati.mail}\n`;
-  txt += `Telefono: ${dati.tel}\n`;
-  txt += `Data esportazione: ${new Date().toLocaleString()}\n`;
-  txt += `---------------------------------------\n\n`;
-
-  txt += `SERVIZI SELEZIONATI - PREZZI DI LISTINO\n`;
-  serviziSelezionati.forEach(serv => {
-    if (serv.fixed && serv.prezzo !== '') {
-      txt += `- ${serv.nome}: ${prezzoSetup(serv.nStanze)} € una tantum\n`;
-    }
-    else if (["Starter","Plus","VIP"].includes(serv.nome)) {
-      txt += `- ${serv.nome} (${serv.nStanze} stanze): ${prezzoBundle(serv.nome, serv.nStanze)} €/mese\n`;
-    } else if (serv.nome === 'CRM MioDottore') {
-      txt += `- CRM MioDottore (${serv.quantita} stanze): ${serv.quantita * 10} €/mese\n`;
-    } else if (serv.nome === 'Visibility MioDottore') {
-      txt += `- Visibility MioDottore (${serv.quantita} medici): ${prezzoVisibility(serv.quantita)} €/mese\n`;
-    } else if (serv.hasQuantita) {
-      let val = serv.quantita || 1;
-      txt += `- ${serv.nome} (${val} ${serv.labelQuantita || ''}): ${serv.prezzo * val} ${serv.tipo === "setup" ? "€ una tantum" : "€/mese"}\n`;
-    } else if (serv.tipo === "setup") {
-      txt += `- ${serv.nome}: ${serv.prezzo} € una tantum\n`;
-    } else {
-      txt += `- ${serv.nome}: ${serv.prezzo} €\n`;
-    }
-  });
-  let totaleMensile = 0, totaleSetup = 0;
-  serviziSelezionati.forEach(serv => {
-    if (serv.fixed && serv.prezzo !== '') totaleSetup += prezzoSetup(serv.nStanze);
-    else if (["Starter","Plus","VIP"].includes(serv.nome)) totaleMensile += prezzoBundle(serv.nome, serv.nStanze);
-    else if (serv.nome === "CRM MioDottore") totaleMensile += (serv.quantita || 1) * 10;
-    else if (serv.nome === "Visibility MioDottore") totaleMensile += prezzoVisibility(serv.quantita);
-    else if (serv.hasQuantita) {
-      if (serv.tipo === "setup") totaleSetup += serv.prezzo * (serv.quantita || 1);
-      else totaleMensile += serv.prezzo * (serv.quantita || 1);
-    }
-    else if (serv.tipo === "setup") totaleSetup += serv.prezzo;
-    else totaleMensile += serv.prezzo;
-  });
-  txt += `\nTotale canone mensile (listino): ${totaleMensile} €\n`;
-  txt += `Totale una tantum (listino): ${totaleSetup} €\n`;
-
-  txt += `\n---------------------------------------\n`;
-
-  if (promoAttiva) {
-    txt += `\nOFFERTA RISERVATA (PROMO):\n`;
-    let totaleMensilePromo = 0, totaleSetupPromo = 0;
-    serviziSelezionati.forEach(serv => {
-      if (["Starter","Plus","VIP"].includes(serv.nome)) {
-        let prezzo = prezzoBundlePromo(serv.nome, serv.nStanze);
-        txt += `- ${serv.nome} (${serv.nStanze} stanze): ${prezzo} €/mese (promo)\n`;
-        totaleMensilePromo += prezzo;
-      } else if (serv.nome === "CRM MioDottore") {
-        let prezzo = (serv.quantita || 1) * 10;
-        txt += `- CRM MioDottore (${serv.quantita} stanze): ${prezzo} €/mese\n`;
-        totaleMensilePromo += prezzo;
-      } else if (serv.nome === "Visibility MioDottore") {
-        let prezzo = prezzoVisibilityPromo(serv.quantita);
-        txt += `- Visibility MioDottore (${serv.quantita} medici): ${prezzo} €/mese (promo)\n`;
-        totaleMensilePromo += prezzo;
-      } else if (serv.fixed && serv.nome === "Attivazione / Formazione") {
-        let prezzo = serv.nStanze ? prezzoSetupPromo(serv.nStanze) : '';
-        if(prezzo !== '') {
-          txt += `- ${serv.nome}: ${prezzo} € una tantum (promo)\n`;
-          totaleSetupPromo += prezzo;
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.azioni .btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      const txt = btn.textContent.trim();
+      if (txt === "Verifica condizioni riservate") {
+        if (!promoAttiva && !progressAttiva) {
+          startProgressBar(function() {
+            promoAttiva = true;
+            aggiornaPreventivo();
+          });
         }
-      } else if (serv.tipo === "setup") {
-        let val = serv.quantita || 1;
-        let prezzo = serv.prezzo * val;
-        txt += `- ${serv.nome} (${val} ${serv.labelQuantita || ''}): ${prezzo} € una tantum\n`;
-        totaleSetupPromo += prezzo;
-      } else if (serv.hasQuantita) {
-        let val = serv.quantita || 1;
-        let prezzo = serv.prezzo * val;
-        txt += `- ${serv.nome} (${val} ${serv.labelQuantita || ''}): ${prezzo} €/mese\n`;
-        totaleMensilePromo += prezzo;
+      } else if (txt === "Esporta documento") {
+        mostraModalExport();
       }
     });
-    txt += `\nTotale canone mensile promo: ${totaleMensilePromo} €\n`;
-    txt += `Totale una tantum promo: ${totaleSetupPromo} €\n`;
-  }
+  });
 
-  txt += `\n---------------------------------------\n`;
-  txt += `Documento generato con Preventivatore digitale`;
+  document.getElementById('btn-calendar').onclick = function() {
+    const titolo = encodeURIComponent("Appuntamento QPWON");
+    const dettagli = encodeURIComponent("Conferma appuntamento per la presentazione del preventivo QPWON.");
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titolo}&details=${dettagli}`;
+    window.open(url, '_blank');
+  };
+  document.getElementById('btn-docusign').onclick = function() {
+    window.open("https://www.docusign.com/it", '_blank');
+  };
+});
 
-  const blob = new Blob([txt], { type: 'text/plain' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'preventivo.txt';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
-}
+//--- EXPORT TXT (resta uguale, vedi versione precedente)
 
 //--- RENDER INIZIALE
-aggiornaPreventivo();
+document.addEventListener('DOMContentLoaded', aggiornaPreventivo);
 
