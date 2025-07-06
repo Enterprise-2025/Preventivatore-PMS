@@ -32,7 +32,6 @@ body {
   padding: 32px;
 }
 
-/* Layout principale */
 .container {
   display: flex;
   gap: 40px;
@@ -40,7 +39,6 @@ body {
   margin: 0 auto;
 }
 
-/* Pannello catalogo con scroll interno */
 .catalog {
   flex: 1;
   background: var(--white);
@@ -49,11 +47,10 @@ body {
   padding: 28px;
   border: 1px solid var(--border);
   min-width: 320px;
-  max-height: calc(100vh - 64px); /* Adatta l'altezza al viewport, tenendo conto del padding */
-  overflow-y: auto;            /* Abilita lo scroll interno */
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
 }
 
-/* Pannello preventivo fisso */
 .preventivo {
   flex: 1;
   background: var(--white);
@@ -125,6 +122,32 @@ body {
 .dropzone.over {
   background: #e6fffa;
   border-color: var(--primary-dark);
+}
+
+.durata-panel {
+  background: #f9fafb;
+  border-radius: 10px;
+  border: 1.2px solid var(--border);
+  margin-bottom: 18px;
+  padding: 13px 16px 6px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 16px;
+}
+
+.durata-panel label {
+  font-size: 15px;
+  color: var(--primary-dark);
+  margin-right: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.durata-panel input[type="radio"] {
+  accent-color: var(--primary);
+  margin-right: 5px;
+  vertical-align: middle;
 }
 
 .voce-preventivo {
@@ -358,7 +381,7 @@ body {
     padding: 18px 12px 16px 12px;
   }
   .catalog {
-    max-height: unset; /* Rimuove il vincolo di altezza su mobile */
+    max-height: unset;
     overflow: visible;
   }
   .servizi-lista {
