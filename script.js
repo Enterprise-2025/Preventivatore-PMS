@@ -622,7 +622,7 @@ function esportaPreventivoTXT(dati) {
   }
 
   txt += `\n---------------------------------------\n`;
-  txt += `Documento generato con QPWON Preventivatore\n`;
+  txt += `Documento generato con Preventivatore digitale`;
 
   const blob = new Blob([txt], { type: 'text/plain' });
   const url = URL.createObjectURL(blob);
