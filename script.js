@@ -1,3 +1,12 @@
+// ✅ Protezione accesso
+(function protezioneAccesso() {
+  const refOk = document.referrer.includes("enterprise-2025.github.io") || window.opener;
+  const accessoConsentito = localStorage.getItem("accesso_consentito") === "ok";
+  if (!accessoConsentito || !refOk) {
+    document.body.innerHTML = "<h2 style='color: red; text-align: center;'>Accesso non autorizzato</h2>";
+    setTimeout(() => location.replace("https://enterprise-2025.github.io/"), 1500);
+  }
+})();
 // ==========================
 // Preventivatore QPWON Drag & Drop - Script.js
 // ==========================
